@@ -33,7 +33,7 @@ def main():
                                   help='Search over Interface alias with regex'
                                        'example: UPLINK'
                                        'matches any interfaces with keyword UPLINK on its alias')
-    argparser.parser.add_argument('-ia', '--ignore_alias', dest='ifdescr_ignore_arg',  default=None, const=None,
+    argparser.parser.add_argument('-id', '--ignore_descr', dest='ifdescr_ignore_arg',  default=None, const=None,
                                   help='Search over Interface ifDescr with regex and ignores that'
                                        'example: Stack')
 
@@ -115,7 +115,7 @@ def main():
     # Change the down_interfaces only to those that ifDescr doesn't match regex passed to ifdescr_ignore_arg
     if ifdescr_ignore_arg:
         for ifIndex, ifDescr in interface_descr.items():
-            # Add the regex from --ia command, like: GigabitEthernet(\d+)/0/(4[78]|[5][0-2]) or Stack
+            # Add the regex from --id command, like: GigabitEthernet(\d+)/0/(4[78]|[5][0-2]) or Stack
             ifdescr_regex = re.compile(ifdescr_ignore_arg)
             # Remove from down_interfaces if regex matches
             if ifdescr_regex.search(ifDescr):
