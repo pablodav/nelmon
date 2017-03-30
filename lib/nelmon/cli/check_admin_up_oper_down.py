@@ -5,8 +5,9 @@ from nelmon.globals import NelmonGlobals
 from nelmon.snmp.oids import cisco_oids as O
 from nelmon.snmp.args import SnmpArguments
 from nelmon.snmp.handler import NelmonSnmp
+import re
 
-NelmonGlobals(PLUGIN_VERSION='1.2')
+NelmonGlobals(PLUGIN_VERSION='1.3')
 
 description = """This plugin queries a network device by SNMP to check if there are
 any interfaces which are in the admin up (no shutdown) but are operationally
@@ -24,6 +25,14 @@ def main():
                                   help='Return Warning if interfaces are down')
     argparser.parser.add_argument('-c', action='store_true',
                                   help='Return Critical if interfaces are down')
+    argparser.parser.add_argument('-d', '--descr', dest='ifdescr_arg',  default=None, const=None,
+                                  help='Search over Interface descr with regex'
+                                       'example: GigabitEthernet(\d+)/0/(4[78]|[5][0-2])'
+                                       'matches any of: GigabitEthernetx/0/47,48,50,51,52')
+    argparser.parser.add_argument('-al', '--alias', dest='ifalias_arg',  default=None, const=None,
+                                  help='Search over Interface alias with regex'
+                                       'example: UPLINK'
+                                       'matches any interfaces with keyword UPLINK on its alias')
 
     args = argparser.parser.parse_nelmon_args()
 
@@ -33,6 +42,9 @@ def main():
         exit_status = C.WARNING
     else:
         nelmon_exit(C.UNKNOWN, 'Use -w or -c')
+
+    ifdescr_arg = args.ifdescr_arg
+    ifalias_arg = args.ifalias_arg
 
     snmp = NelmonSnmp(args)
 
@@ -75,8 +87,31 @@ def main():
             interface_alias[ifIndex] = value
     return_string = []
 
-    if len(down_interfaces) > 1:
+    # Change the down_interfaces only to those that ifDescr matches regex passed to ifdescr_arg
+    if ifdescr_arg:
+        down_interfaces = []
+        for ifIndex, ifDescr in interface_descr.items():
+            # Add the regex from -d command, like: GigabitEthernet(\d+)/0/(4[78]|[5][0-2])
+            ifdescr_regex = re.compile(ifdescr_arg)
+            # Only add to down_interfaces if regex matches
+            if ifdescr_regex.search(ifDescr):
+                down_interfaces.append(ifIndex)
+
+    # Change the down_interfaces only to those that ifAlias matches regex passed to ifalias_arg
+    if ifalias_arg:
+        down_interfaces = []
+        if interface_alias:
+            for ifIndex, ifAlias in interface_alias.items():
+                # Add the regex from -d command, like: UPLINK
+                ifalias_regex = re.compile(ifalias_arg)
+                # Only add to down_interfaces if regex matches
+                if ifalias_regex.search(ifAlias):
+                    down_interfaces.append(ifIndex)
+
+    if len(down_interfaces) > 0:
         return_string.append("%d interfaces down" % (len(down_interfaces)))
+    else:
+        nelmon_exit(C.OK, 'No interfaces down')
 
     for ifIndex in down_interfaces:
         if len(str(interface_alias[ifIndex])) > 0:
