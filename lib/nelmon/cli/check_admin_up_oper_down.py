@@ -33,6 +33,9 @@ def main():
                                   help='Search over Interface alias with regex'
                                        'example: UPLINK'
                                        'matches any interfaces with keyword UPLINK on its alias')
+    argparser.parser.add_argument('-ia', '--ignore_alias', dest='ifdescr_ignore_arg',  default=None, const=None,
+                                  help='Search over Interface ifDescr with regex and ignores that'
+                                       'example: Stack')
 
     args = argparser.parser.parse_nelmon_args()
 
@@ -45,6 +48,7 @@ def main():
 
     ifdescr_arg = args.ifdescr_arg
     ifalias_arg = args.ifalias_arg
+    ifdescr_ignore_arg = args.ifdescr_ignore_arg
 
     snmp = NelmonSnmp(args)
 
@@ -102,11 +106,20 @@ def main():
         down_interfaces = []
         if interface_alias:
             for ifIndex, ifAlias in interface_alias.items():
-                # Add the regex from -d command, like: UPLINK
+                # Add the regex from -al command, like: UPLINK
                 ifalias_regex = re.compile(ifalias_arg)
                 # Only add to down_interfaces if regex matches
                 if ifalias_regex.search(ifAlias):
                     down_interfaces.append(ifIndex)
+
+    # Change the down_interfaces only to those that ifDescr doesn't match regex passed to ifdescr_ignore_arg
+    if ifdescr_ignore_arg:
+        for ifIndex, ifDescr in interface_descr.items():
+            # Add the regex from --ia command, like: GigabitEthernet(\d+)/0/(4[78]|[5][0-2]) or Stack
+            ifdescr_regex = re.compile(ifdescr_ignore_arg)
+            # Remove from down_interfaces if regex matches
+            if ifdescr_regex.search(ifDescr):
+                down_interfaces.remove(ifIndex)
 
     if len(down_interfaces) > 0:
         return_string.append("%d interfaces down" % (len(down_interfaces)))
