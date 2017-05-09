@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+1.4.0 (2017-05-09)
+++++++++++++++++++
+
+* Added options to check interface by ifDescr regex (pablodav)
+* Added options to check interface by ifAlias (pablodav)
+* Added option to ignore some interface by ifDescr (pablodav)
+
 1.3.5 (2016-11-04)
 ++++++++++++++++++
 
