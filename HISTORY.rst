@@ -3,13 +3,13 @@
 Release History
 ---------------
 
-1.3.6 (2017-07-18)
+1.3.6 (2017-09-30)
 ++++++++++++++++++
 
 * Added options to check interface by ifDescr regex (pablodav)
 * Added options to check interface by ifAlias (pablodav)
 * Added option to ignore some interface by ifDescr (pablodav)
-* fix nelsnmp version to 0.2.5 due to bug https://github.com/networklore/nelsnmp/issues/8 (pablodav)
+* Bugfixes due to changes in nelsnmp
 
 1.3.5 (2016-11-04)
 ++++++++++++++++++
